@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MobileSafety Viewer</title>
+  <style>
+    body{font-family:Arial;margin:20px;text-align:center}
+    img{max-width:100%;border-radius:12px;margin-top:20px}
+    .box{padding:12px;border:1px solid #ddd;border-radius:12px}
+  </style>
+</head>
+<body>
+
+<h2>📷 MobileSafety Camera Viewer</h2>
+
+<div class="box" id="status">Loading image...</div>
+<img id="img" style="display:none" />
+
+<script>
+  // 🔥 Put your Firebase DB URL here
+  const FIREBASE_DB = "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com";
+
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+
+  const status = document.getElementById("status");
+  const img = document.getElementById("img");
+
+  if (!id) {
+    status.innerText = "❌ Missing image id";
+  } else {
+    fetch(`${FIREBASE_DB}/camera_images/${id}.json`)
+      .then(r => r.json())
+      .then(base64 => {
+        if (!base64) {
+          status.innerText = "❌ Image not found or deleted";
+          return;
+        }
+        img.src = "data:image/jpeg;base64," + base64;
+        img.style.display = "block";
+        status.innerText = "✅ Image loaded";
+      })
+      .catch(err => {
+        status.innerText = "❌ Error: " + err;
+      });
+  }
+</script>
+
+</body>
+</html>
