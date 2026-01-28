@@ -1,51 +1,67 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MobileSafety Viewer</title>
+  <meta charset="UTF-8" />
+  <title>MobileSafety Camera Viewer</title>
   <style>
-    body{font-family:Arial;margin:20px;text-align:center}
-    img{max-width:100%;border-radius:12px;margin-top:20px}
-    .box{padding:12px;border:1px solid #ddd;border-radius:12px}
+    body { font-family: Arial, sans-serif; padding: 30px; text-align: center; }
+    img { max-width: 95%; border-radius: 12px; margin-top: 20px; }
+    .box { max-width: 900px; margin: auto; }
+    .status { padding: 10px; margin-top: 15px; border-radius: 10px; }
+    .ok { background: #e6ffed; color: #006b1b; }
+    .err { background: #ffe6e6; color: #8b0000; }
   </style>
 </head>
 <body>
+  <div class="box">
+    <h2>📷 MobileSafety Camera Viewer</h2>
 
-<h2>📷 MobileSafety Camera Viewer</h2>
+    <div id="status" class="status err">Waiting...</div>
 
-<div class="box" id="status">Loading image...</div>
-<img id="img" style="display:none" />
+    <img id="img" style="display:none;" />
+  </div>
 
-<script>
-  // 🔥 Put your Firebase DB URL here
-  const FIREBASE_DB = "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com";
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
 
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
+    const status = document.getElementById("status");
+    const img = document.getElementById("img");
 
-  const status = document.getElementById("status");
-  const img = document.getElementById("img");
+    if (!id) {
+      status.textContent = "❌ Missing image id";
+      status.className = "status err";
+      throw new Error("Missing id");
+    }
 
-  if (!id) {
-    status.innerText = "❌ Missing image id";
-  } else {
-    fetch(`${FIREBASE_DB}/camera_images/${id}.json`)
-      .then(r => r.json())
+    // 🔥 IMPORTANT: your firebase DB URL
+    const FIREBASE_DB =
+      "https://mobilesafetyapp-7629d-default-rtdb.firebaseio.com";
+
+    const url = `${FIREBASE_DB}/camera_images/${id}.json`;
+
+    fetch(url)
+      .then(res => res.json())
       .then(base64 => {
-        if (!base64) {
-          status.innerText = "❌ Image not found or deleted";
+
+        if (!base64 || typeof base64 !== "string") {
+          status.textContent = "❌ Image not found in Firebase";
+          status.className = "status err";
           return;
         }
+
+        // ✅ Add Data URL prefix
         img.src = "data:image/jpeg;base64," + base64;
+
         img.style.display = "block";
-        status.innerText = "✅ Image loaded";
+        status.textContent = "✅ Image loaded";
+        status.className = "status ok";
       })
       .catch(err => {
-        status.innerText = "❌ Error: " + err;
+        status.textContent = "❌ Error loading image";
+        status.className = "status err";
+        console.error(err);
       });
-  }
-</script>
-
+  </script>
 </body>
 </html>
