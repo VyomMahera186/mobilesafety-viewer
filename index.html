@@ -15,9 +15,7 @@
 <body>
   <div class="box">
     <h2>📷 MobileSafety Camera Viewer</h2>
-
     <div id="status" class="status err">Waiting...</div>
-
     <img id="img" style="display:none;" />
   </div>
 
@@ -34,26 +32,26 @@
       throw new Error("Missing id");
     }
 
-    // 🔥 IMPORTANT: your firebase DB URL
+    // ✅ YOUR DATABASE
     const FIREBASE_DB =
       "https://mobilesafetyapp-7629d-default-rtdb.firebaseio.com";
 
-    const url = `${FIREBASE_DB}/camera_images/${id}.json`;
+    // 🔥 FIXED PATH
+    const url = `${FIREBASE_DB}/camera_captures/${id}.json`;
 
     fetch(url)
       .then(res => res.json())
-      .then(base64 => {
-
-        if (!base64 || typeof base64 !== "string") {
+      .then(data => {
+        // 🔥 FIXED STRUCTURE
+        if (!data || !data.imageBase64) {
           status.textContent = "❌ Image not found in Firebase";
           status.className = "status err";
           return;
         }
 
-        // ✅ Add Data URL prefix
-        img.src = "data:image/jpeg;base64," + base64;
-
+        img.src = "data:image/jpeg;base64," + data.imageBase64;
         img.style.display = "block";
+
         status.textContent = "✅ Image loaded";
         status.className = "status ok";
       })
