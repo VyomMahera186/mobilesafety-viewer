@@ -2,64 +2,129 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>MobileSafety Camera Viewer</title>
+  <title>MobileSafety Viewer</title>
+
   <style>
-    body { font-family: Arial, sans-serif; padding: 30px; text-align: center; }
-    img { max-width: 95%; border-radius: 12px; margin-top: 20px; }
-    .box { max-width: 900px; margin: auto; }
-    .status { padding: 10px; margin-top: 15px; border-radius: 10px; }
-    .ok { background: #e6ffed; color: #006b1b; }
-    .err { background: #ffe6e6; color: #8b0000; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      text-align: center;
+    }
+
+    img, audio {
+      max-width: 95%;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+
+    .box {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .status {
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 10px;
+    }
+
+    .ok {
+      background: #e6ffed;
+      color: #006b1b;
+    }
+
+    .err {
+      background: #ffe6e6;
+      color: #8b0000;
+    }
   </style>
 </head>
+
 <body>
   <div class="box">
-    <h2>📷 MobileSafety Camera Viewer</h2>
-    <div id="status" class="status err">Waiting...</div>
+    <h2>📱 MobileSafety Viewer</h2>
+
+    <div id="status" class="status err">Loading...</div>
+
     <img id="img" style="display:none;" />
+    <audio id="audio" controls style="display:none;"></audio>
   </div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
+
+    const imageId = params.get("id");
+    const audioId = params.get("audio");
 
     const status = document.getElementById("status");
     const img = document.getElementById("img");
+    const audio = document.getElementById("audio");
 
-    if (!id) {
-      status.textContent = "❌ Missing image id";
-      status.className = "status err";
-      throw new Error("Missing id");
-    }
-
-    // ✅ YOUR DATABASE
     const FIREBASE_DB =
       "https://mobilesafetyapp-7629d-default-rtdb.firebaseio.com";
 
-    // 🔥 FIXED PATH
-    const url = `${FIREBASE_DB}/camera_captures/${id}.json`;
+    // ================= IMAGE =================
+    if (imageId) {
 
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        // 🔥 FIXED STRUCTURE
-        if (!data || !data.imageBase64) {
-          status.textContent = "❌ Image not found in Firebase";
+      const url = `${FIREBASE_DB}/camera_captures/${imageId}.json`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+
+          if (!data || !data.imageBase64) {
+            status.textContent = "❌ Image not found";
+            status.className = "status err";
+            return;
+          }
+
+          img.src = "data:image/jpeg;base64," + data.imageBase64;
+          img.style.display = "block";
+
+          status.textContent = "📷 Image loaded";
+          status.className = "status ok";
+        })
+        .catch(err => {
+          status.textContent = "❌ Error loading image";
           status.className = "status err";
-          return;
-        }
+          console.error(err);
+        });
+    }
 
-        img.src = "data:image/jpeg;base64," + data.imageBase64;
-        img.style.display = "block";
+    // ================= AUDIO =================
+    else if (audioId) {
 
-        status.textContent = "✅ Image loaded";
-        status.className = "status ok";
-      })
-      .catch(err => {
-        status.textContent = "❌ Error loading image";
-        status.className = "status err";
-        console.error(err);
-      });
+      const url = `${FIREBASE_DB}/audio_records/${audioId}.json`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+
+          if (!data || !data.audioBase64) {
+            status.textContent = "❌ Audio not found";
+            status.className = "status err";
+            return;
+          }
+
+          audio.src = "data:audio/mp3;base64," + data.audioBase64;
+          audio.style.display = "block";
+
+          status.textContent = "🎤 Audio ready";
+          status.className = "status ok";
+        })
+        .catch(err => {
+          status.textContent = "❌ Error loading audio";
+          status.className = "status err";
+          console.error(err);
+        });
+    }
+
+    // ================= NO PARAM =================
+    else {
+      status.textContent = "❌ No ID provided";
+      status.className = "status err";
+    }
+
   </script>
 </body>
 </html>
